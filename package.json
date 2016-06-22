@@ -1,0 +1,27 @@
+{
+  "main": "src/index.js",
+  "devDependencies": {
+    "mocha": "^2.5.3"
+  },
+  "scripts": {
+    "test": "mocha test/**.spec.js"
+  },
+  "name": "boundary-stream",
+  "version": "1.0.0",
+  "description": "Convert data into length prefixed chunks to effectively pass over network",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rumkin/boundary-stream.git"
+  },
+  "keywords": [
+    "stream",
+    "streams",
+    "transport"
+  ],
+  "author": "rumkin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rumkin/boundary-stream/issues"
+  },
+  "homepage": "https://github.com/rumkin/boundary-stream#readme"
+}
