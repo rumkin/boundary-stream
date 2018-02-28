@@ -3,40 +3,50 @@ const Transfrom = require('stream').Transform;
 module.exports = class ChunkStream extends Transfrom {
     constructor(options = {}) {
         super(options);
-        // this.buffer = new BUffer();
+
+        this.buffers = [];
+        this.bufferedLength = 0;
+
         this.chunkLength = -1;
     }
 
     _transform(chunk, encoding, done) {
-        var totalLength = this.buffer
-            ? this.buffer.length + chunk.length
-            : chunk.length;
+        const totalLength = this.bufferedLength + chunk.length;
 
-        if (this.chunkLength > 0 && totalLength < this.chunkLength) {
-            this.buffer = Buffer.concat([this.buffer, chunk]);
-            done();
-        }
-
-        var offset = 0;
+        let data = chunk;
+        let offset = 0;
 
         if (this.chunkLength > 0) {
+            if (totalLength < this.chunkLength) {
+                this.buffers = [...this.buffers, chunk];
+                this.bufferedLength = totalLength;
+                done();
+                return;
+            }
+
             // Has something to output
-            chunk = Buffer.concat([this.buffer, chunk]);
-            this.push(chunk.slice(0, this.chunkLength));
-            this.buffer = null;
+            data = Buffer.concat([...this.buffers, chunk]);
+            this.buffers = null;
+            this.bufferedLength = 0;
+
             offset = this.chunkLength;
             this.chunkLength = -1;
+
+            this.push(data.slice(0, offset));
         }
 
         // Cut chunks untill them end
-        while (chunk.length > offset) {
-            let chunkSize = chunk.readUInt32BE(offset);
-            if (chunkSize < chunk.length - offset) {
-                this.push(chunk.slice(offset + 4, offset + 4 + chunkSize));
-                offset += 4 + chunkSize;
-            } else {
-                this.chunkSize = chunkSize;
-                this.buffer = chunk.slice(offset + 4);
+        while (data.length > offset) {
+            const chunkLength = data.readUInt32BE(offset);
+
+            if (chunkLength <= data.length - offset) {
+                this.push(data.slice(offset + 4, offset + 4 + chunkLength));
+                offset += 4 + chunkLength;
+            }
+            else {
+                this.chunkLength = chunkLength;
+                this.buffers = [data.slice(offset + 4)];
+                this.bufferedLength = data.length - (offset + 4);
                 break;
             }
         }
