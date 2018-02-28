@@ -1,13 +1,18 @@
 # Boundary Stream
 
-Boundary stream converts passed data into length prefixed buffers to send it
-over network. It's useful for messaging over tcp connection. It's more speed
-efficient then delimiter based encoding.
+[![npm](https://img.shields.io/npm/v/boundary-stream.svg?style=flat-square)](https://npmjs.com/packages/boundary-stream)
 
+Boundary stream converts passed data into length prefixed buffers.
+It helps to send data via tcp connection. Length prefixed protocols are more speed
+efficient then delimiter based (like HTTP).
 
-## Installation
+Boundary stream can handle any size of message. The only limit is RAM size.
+It supports String or Buffer transfer and fits for JSON, MsgPack, CBOR and BORN
+encoders.
 
-Installation via npm:
+## Install
+
+Install via npm:
 
 ```shell
 npm i boundary-stream
@@ -15,31 +20,48 @@ npm i boundary-stream
 
 ## Usage
 
-Example of JSON encoded messages. It's possible to use MsgPack, CBOR or BORN
-encoders too.
+Example of raw Buffer message transfer.
+
+### Client
 
 ```javascript
-const bstream = require('boundary-stream');
+const net = require('net');
+const boundary = require('boundary-stream');
 
-const writer = bstream.writer(); // or new bstream.Writer();
-const reader = bstream.reader(); // or new bstream.Reader();
+const conn = net.connect(9090);
 
-writer.pipe(reader);
-reader.on('data', chunk => console.log(JSON.decode(chunk.toString())));
+conn.on('connect', () => {
+    const writer = boundary.writer();
 
-writer.write(JSON.encode({message: 'Hello'}));
+    writer.pipe(conn);
+
+    writer.write(Buffer.alloc(10 * 1024 * 1024)); // Send 10 MiB buffer
+    writer.end();
+});
+
+// ...
 ```
 
+### Server
+
+```javascript
+const net = require('net');
+const boundary = require('boundary-stream');
+
+const server = net.createServer(function(conn){
+    let reader = boundary.reader();
+
+    reader.on('data', (message) => {
+        console.log(message.length); // -> 10485760
+    });
+
+    conn.pipe(reader);
+});
+
+// ...
+```
 
 ## API
-
-### Writer()
-
-Writer constructor
-
-### Reader()
-
-Reader constructor
 
 ### writer() -> Writer{}
 
@@ -49,6 +71,17 @@ Create Writer instance.
 
 Create Reader instance.
 
+### Writer()
+
+Writer constructor
+
+### Writer().write(String|Buffer)
+
+Write message to stream.
+
+### Reader()
+
+Reader constructor
 
 ## License
 

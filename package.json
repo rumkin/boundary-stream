@@ -1,4 +1,7 @@
 {
+  "name": "boundary-stream",
+  "version": "1.1.1",
+  "description": "Convert data into length prefixed chunks to effectively pass over network",
   "main": "src/index.js",
   "devDependencies": {
     "mocha": "^2.5.3"
@@ -6,9 +9,6 @@
   "scripts": {
     "test": "mocha test/**.spec.js"
   },
-  "name": "boundary-stream",
-  "version": "1.1.0",
-  "description": "Convert data into length prefixed chunks to effectively pass over network",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rumkin/boundary-stream.git"
